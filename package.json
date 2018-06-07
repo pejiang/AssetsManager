@@ -1,0 +1,36 @@
+{
+  "name": "assets-manager",
+  "version": "1.0.0",
+  "description": "资产管理",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "assets",
+    "manager"
+  ],
+  "author": "kangwei",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-latest-node": "^1.0.0",
+    "babel-preset-stage-3": "^6.24.1"
+  },
+  "dependencies": {
+    "co-redis": "^2.1.1",
+    "koa": "^2.5.1",
+    "koa-body": "^2.5.0",
+    "koa-bodyparser": "^4.2.1",
+    "koa-router": "^7.4.0",
+    "koa-static": "^4.0.3",
+    "lodash": "^4.17.10",
+    "mkdirp": "^0.5.1",
+    "nodemon": "^1.17.5",
+    "oauth20-provider": "^0.6.0",
+    "redis": "^2.8.0",
+    "request": "^2.87.0",
+    "request-promise": "^4.2.2"
+  }
+}

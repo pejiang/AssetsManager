@@ -1,0 +1,1 @@
+["name","mac","status","position","battery","type","count","dept","owner","price","history","note","image","deleted"]
