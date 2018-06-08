@@ -86,7 +86,7 @@ positionRouter.get('/',async (ctx,next) => {
 positionRouter.get('/history',async (ctx,next) => {
     let id = ctx.params.id
     log.d('Get position history ID:',id)
-    ctx.body = await position().find('CC:EB:E0:E0:0B:F1');
+    ctx.body = await position().find('DC:3E:66:06:17:48');
 })
 
 statusRouter.get('/',async (ctx,next) => {

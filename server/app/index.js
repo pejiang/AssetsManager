@@ -58,7 +58,7 @@ app.use(
 app.use(async (ctx,next) => {
     // for cross-domain access
     ctx.set('Access-Control-Allow-Origin', '*');
-    ctx.set('Access-Control-Allow-Headers', 'Content-Type,Accept,Authorization');
+    ctx.set('Access-Control-Allow-Headers', 'Content-Type,Accept,Authorization,Origin, X-Requested-With');
     ctx.set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE');
     ctx.set('Access-Control-Allow-Credentials', true);
     if (ctx.method === 'OPTIONS') {

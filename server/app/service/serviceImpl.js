@@ -20,13 +20,16 @@ export default (compatible) => {
 					let res = await getPosition(config.ac_server,data[asset['mac']],koa_app.token.access_token);
 					console.log('get position -------->',res.name);
 					let pos = await position().find(asset['mac'])
-					if(pos && !pos.ps.includes(res.name)){
-						pos.ps.push(res.name);
-						await position().update(asset['mac'],pos);
+					if(pos && !pos.ps){
+						let p = pos.ps[pos.ps.length - 1];
+						if(p.pos != res.name){
+							pos.ps.push({time:Date.now(),pos:res.name});
+							await position().update(asset['mac'],pos);
+						}
 					}else{
 						let p = {
 							id:asset['mac'],
-							ps:[res.name]
+							ps:[{time:Date.now(),pos:res.name}]
 						}
 						await position().create(p);
 					}

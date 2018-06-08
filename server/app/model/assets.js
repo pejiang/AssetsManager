@@ -38,6 +38,8 @@ module.exports = function(compatible) {
                         fs.rename(a,b,(e) => {
                             if(!e){
                                 resolve();
+                            }else{
+                                reject(e)
                             }
                         });
                     })
@@ -98,12 +100,13 @@ module.exports = function(compatible) {
             for(let i in assets){
                 let asset = assets[i];
                 for(let k in asset){
+                    if(asset[k] == null || typeof asset[k] == 'object' || typeof asset[k] == 'boolean')continue;
+                    console.log(111111111,asset[k])
                     if(!pattern.test(keyword) && asset[k] && asset[k].match(regEx)){
                         res.push(asset)
                         break;
                     }
                 }
-
             }
             return res;
         },
