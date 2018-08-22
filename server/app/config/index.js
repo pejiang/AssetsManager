@@ -2,7 +2,7 @@ export default (
     {
         redis: {
             port: 6379,
-            host: '192.168.0.143'
+            host: '10.0.10.242'
         },
         fs: {
             path: './db/'
@@ -21,10 +21,10 @@ export default (
             listen: 8888
         },
         use: 'http',
-        ac_server:'http://192.168.0.227',
+        ac_server:'http://10.0.10.240',
         developer:{
-            key:"tester",
-            secret:"10b83f9a2e823c47"
+            key:"huijia",
+            secret:"huijia"
         },
         DEBUG: true
     }

@@ -3,7 +3,7 @@ import assets from '../controller/assets'
 import fields from '../controller/fields'
 import position from '../controller/position'
 import status from '../controller/status'
-import {service} from '../service'
+import service from '../service/serviceImpl'
 import {log} from '../util'
 
 const router = new Router({
@@ -41,12 +41,14 @@ router
   })
   .post('/', async (ctx, next) => {
     let body = ctx.request.body;
-    ctx.body = await assets().create(body)
+    let user = getcookie(ctx,'name') || 'admin';
+    ctx.body = await assets().create(body,user)
   })
   .put('/:id', async (ctx, next) => {
     let id = ctx.params.id
     let body = ctx.request.body;
-    ctx.body = await assets().update(id,body)
+    let user = getcookie(ctx,'name') || 'admin';
+    ctx.body = await assets().update(id,body,user)
   })
   .del('/:id', async (ctx, next) => {
     let id = ctx.params.id
@@ -56,6 +58,15 @@ router
     let id = ctx.params.id
     ctx.body = await assets().find(id);
   })
+
+function getcookie(ctx,objname) {
+  let cookie = ctx.header['cookie'];
+  var arrstr = cookie.split("; ");
+    for (var i = 0; i < arrstr.length; i++) {
+      var temp = arrstr[i].split("=");
+      if (temp[0] == objname) return unescape(temp[1]);
+    }
+}
 
 // fields
 //   .get('/',() => {
@@ -86,8 +97,11 @@ positionRouter.get('/',async (ctx,next) => {
 positionRouter.get('/history',async (ctx,next) => {
     let id = ctx.params.id
     log.d('Get position history ID:',id)
-    ctx.body = await position().find('DC:3E:66:06:17:48');
+    let asset = await assets().find_by('id',id);
+    console.log(asset)
+    ctx.body = await position().find(asset.mac);
 })
+
 
 statusRouter.get('/',async (ctx,next) => {
     let id = ctx.params.id

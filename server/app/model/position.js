@@ -1,7 +1,7 @@
 import base  from './model-base'
 let parent = new base({
     name : "position",
-    fields: ["id", "ps"]
+    fields: ["id", "history"]
 })
 
 module.exports = function(compatible) {

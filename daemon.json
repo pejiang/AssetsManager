@@ -1,17 +1,18 @@
 {
   "apps": [
-    { "name": "redis", "script": "redis-server", "cwd": "/opt/cassia-ac/server/bin/", "args": "/opt/cassia-ac/server/bin/redis.conf", "out_file": "/dev/null", "error_file": "/dev/null" },
+    { "name": "redis", "script": "redis-server", "cwd": "/usr/bin/", "args": "/opt/AssetsManager/server/etc/redis.conf", "out_file": "/dev/null", "error_file": "/opt/AssetsManager/err.log" },
     {
       "name": "main-web",
       "script": "index.js",
-      "cwd": "/home/AssetsManager/server",
+      "cwd": "/opt/AssetsManager/server",
       "treekill": false,
       "env": { "NODE_ENV": "development", "log_date_format": "YYYY-MM-DD HH:mm:ss" },
       "env_production": { "NODE_ENV": "production", "DEBUG": "" },
       "env_debug": { "DEBUG": "*" },
-      "out_file": "/dev/null",
-      "error_file": "/dev/null",
+      "out_file": "/opt/AssetsManager/main.log",
+      "error_file": "/opt/AssetsManager/main.log",
       "combine_logs": true
-    },
+    }
   ]
 }
+

@@ -1,6 +1,6 @@
 import config from '../config'
 import assets from '../controller/assets'
-import position from '../controller/position'
+import posctl from '../controller/position'
 import rp from 'request-promise'
 
 export default (compatible) => {
@@ -12,26 +12,30 @@ export default (compatible) => {
 				koa_app.token.time = Date.now();
 	        	console.log('Got token --------> ',koa_app.token);
 			}
-			let res = await assets().all();
-			for(let i in res){
-				let asset = res[i];
+			let all = await assets().all();
+			for(let i in all){
+				let asset = all[i];
 				if(data[asset['mac']]){
 					console.log(data[asset['mac']])
 					let res = await getPosition(config.ac_server,data[asset['mac']],koa_app.token.access_token);
 					console.log('get position -------->',res.name);
-					let pos = await position().find(asset['mac'])
-					if(pos && !pos.ps){
-						let p = pos.ps[pos.ps.length - 1];
-						if(p.pos != res.name){
-							pos.ps.push({time:Date.now(),pos:res.name});
-							await position().update(asset['mac'],pos);
+					let position = await posctl().find(asset['mac'])
+					if(position && position.history){
+						let last = position.history[position.history.length - 1];
+					//	console.log(1111111,last)
+						//console.log(222222,res)
+						if(last.name != res.name){
+							//console.log(222222222,res.name)
+							position.history.push({time:Date.now(),name:res.name});
+							console.log(33333333,position)
+							await posctl().update(asset['mac'],position);
 						}
 					}else{
 						let p = {
 							id:asset['mac'],
-							ps:[{time:Date.now(),pos:res.name}]
+							history:[{time:Date.now(),name:res.name}]
 						}
-						await position().create(p);
+						await posctl().create(p);
 					}
 
 				}

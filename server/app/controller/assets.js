@@ -1,11 +1,11 @@
 import model from '../model/assets'
 module.exports = function(compatible) {
     return {
-        create : async (d) => {
-            return await model().create(d);
+        create : async (d,user) => {
+            return await model().create(d,user);
         },
-        update: async (id, d) =>{
-            return await model().update(id, d);
+        update: async (id, d,user) =>{
+            return await model().update(id, d,user);
         },
         all : async () => {
             return await model().all();

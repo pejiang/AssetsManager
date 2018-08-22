@@ -18,14 +18,14 @@ let parent = new base({
 
 module.exports = function(compatible) {
     return Object.assign({}, parent, {
-        create : async (d) => {
+        create : async (d,user) => {
             parent.fields = fields_cl().all();
-            let obj = d.fields;
+            let obj = d.fields || d;
             obj.position = await position().find(obj.mac);
             obj.deleted = false;
             obj.id = Date.now();
             let file_dir = require('path').normalize(koa_app.uploads_path + 'image/')
-            log.d('upload path :',file_dir,d.files.file);
+            // log.d('upload path :',file_dir,d.files.file);
             if(!fs.existsSync(file_dir)){
                 fs.mkdir(file_dir);
             }
@@ -57,28 +57,33 @@ module.exports = function(compatible) {
                 id:obj.id,
                 changelist:[{
                     why:"资产入库",
-                    by:"admin",
+                    by:user,
                     time:Date.now()
                 }]
             })
             return await parent.create(obj);
         },
-        update: async (id, d) =>{
+        update: async (id, d,user) =>{
             let asset = await parent.find(id);
-            let obj = d.fields;
+            let obj = d.fields || d;
             console.log(obj,asset);
             if(obj.note == asset.note){
                 return await "no change";
             }else{
                 let ret = await status().find(id);
                 console.log(1111111,ret)
-                ret.changelist.push({why:obj.note,by:"admin",time:Date.now()});
+                ret.changelist.push({why:obj.note,by:user,time:Date.now()});
                 status().update(id,ret);
             }
             return await parent.update(id, obj);
         },
         all : async () => {
-            return await parent.all();
+            let ret =  await parent.all();
+            ret = ret.sort((a,b) => {
+                return a.id - b.id;
+            })
+
+            return ret;
         },
         find: async (id) => {
             return await parent.find(id);
@@ -87,9 +92,10 @@ module.exports = function(compatible) {
             return await parent.find_by(key,val)
         },
         destroy:async(id) => {
-            let assets = await parent.find(id);
-            assets.deleted = true;
-            return await parent.update(id,assets);
+            let asset = await parent.find(id);
+            asset.deleted = true;
+	    console.log('del -------->',asset)
+            return await parent.update(id,asset);
         },
         search:async(keyword) =>{
             let assets = await parent.all()
