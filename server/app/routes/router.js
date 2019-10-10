@@ -22,6 +22,10 @@ router
   .get('/',  async (ctx,next) => {
     ctx.body = await assets().all();
   })
+  .get('/device', async (ctx,next) => {
+    var a = ['E1:10:87:7F:16:68'];
+    ctx.body = JSON.stringify(a);
+  })
   .get('/search/:keyword',async (ctx,next) => {
     let keyword = ctx.params.keyword;
     if(!keyword){
@@ -38,6 +42,16 @@ router
     let batteryData = ctx.request.body;
     await service().battery(batteryData);
     ctx.body = {};
+  })
+  .post('/collect',async (ctx,next) => {
+    let data = ctx.request.body;
+    console.log(111111111111,data)
+    ctx.body = {}
+  })
+  .post('/sleep',async (ctx,next) => {
+    let data = ctx.request.body;
+    console.log(111111111111,data)
+    ctx.body = {}
   })
   .post('/', async (ctx, next) => {
     let body = ctx.request.body;
@@ -61,6 +75,7 @@ router
 
 function getcookie(ctx,objname) {
   let cookie = ctx.header['cookie'];
+  if(!cookie) return;
   var arrstr = cookie.split("; ");
     for (var i = 0; i < arrstr.length; i++) {
       var temp = arrstr[i].split("=");
@@ -68,16 +83,7 @@ function getcookie(ctx,objname) {
     }
 }
 
-// fields
-//   .get('/',() => {
-//     console.log(222222);
-//     ctx.body = fields().all();
-//   })
-//   .put('/:d',(d)=>{
-//     fields().update(d);
-//   })
-
-let fieldsRouter = new Router(),positionRouter = new Router(),statusRouter = new Router(),imageRouter = new Router();
+let fieldsRouter = new Router(), positionRouter = new Router(),statusRouter = new Router(),imageRouter = new Router();
  
 fieldsRouter.get('/', (ctx, next) => {
     ctx.body = fields().all();
@@ -94,12 +100,14 @@ positionRouter.get('/',async (ctx,next) => {
     ctx.body = ret.position;
 })
 
-positionRouter.get('/history',async (ctx,next) => {
+positionRouter.get('/history/:offset/:limit',async (ctx,next) => {
     let id = ctx.params.id
+    let parmOffset = ctx.params.offset
+    let parmLimit = ctx.params.limit
     log.d('Get position history ID:',id)
-    let asset = await assets().find_by('id',id);
+    let asset = await assets().find(id);
     console.log(asset)
-    ctx.body = await position().find(asset.mac);
+    ctx.body = await position().all({where: {asset_mac: asset.mac}, offset: parseInt(parmOffset), limit: parseInt(parmLimit)});
 })
 
 

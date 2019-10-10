@@ -14,6 +14,7 @@
   "license": "ISC",
   "devDependencies": {
     "babel-core": "^6.26.3",
+    "babel-plugin-dynamic-import-node": "^2.3.0",
     "babel-polyfill": "^6.26.0",
     "babel-preset-latest-node": "^1.0.0",
     "babel-preset-stage-3": "^6.24.1"
@@ -25,12 +26,14 @@
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
     "koa-static": "^4.0.3",
-    "lodash": "^4.17.10",
+    "lodash": "^4.17.15",
     "mkdirp": "^0.5.1",
+    "mysql2": "^1.7.0",
     "nodemon": "^1.17.5",
     "oauth20-provider": "^0.6.0",
     "redis": "^2.8.0",
     "request": "^2.87.0",
-    "request-promise": "^4.2.2"
+    "request-promise": "^4.2.2",
+    "sequelize": "^5.18.4"
   }
 }

@@ -7,8 +7,8 @@ module.exports = function(compatible) {
         update: async (id, d,user) =>{
             return await model().update(id, d,user);
         },
-        all : async () => {
-            return await model().all();
+        all : async (options) => {
+            return await model().all(options);
         },
         find: async (id) => {
             return await model().find(id);

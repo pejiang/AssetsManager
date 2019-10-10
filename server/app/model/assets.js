@@ -4,25 +4,20 @@ import position from '../controller/position'
 import fields_cl from '../controller/fields'
 import status from '../controller/status'
 
-// var parent = require('./model-base')({
+import base  from './model-base'
+// let parent = new base({
 //     name : "assets",
 //     fields: ["name", "mac", "stats", "position", "battery"]
-// });
-
-import base  from './model-base'
-let parent = new base({
-    name : "assets",
-    fields: ["name", "mac", "stats", "position", "battery"]
-})
-
+// })
 
 module.exports = function(compatible) {
-    return Object.assign({}, parent, {
+    let parent = base.use('asset');
+    return {
         create : async (d,user) => {
             parent.fields = fields_cl().all();
             let obj = d.fields || d;
             obj.position = await position().find(obj.mac);
-            obj.deleted = false;
+            // obj.deleted = false;
             obj.id = Date.now();
             let file_dir = require('path').normalize(koa_app.uploads_path + 'image/')
             // log.d('upload path :',file_dir,d.files.file);
@@ -53,37 +48,45 @@ module.exports = function(compatible) {
                 }       
             }
 
-            status().create({
-                id:obj.id,
-                changelist:[{
-                    why:"资产入库",
-                    by:user,
-                    time:Date.now()
-                }]
+            parent = base.use('asset');
+            obj.status = [{
+                why:"资产入库",
+                by:user,
+                time:Date.now(),
+            }]
+            obj.mac = obj.mac.toUpperCase();
+            return new Promise((resolve, reject) => {
+                parent.create(obj, 'status')
+                .then((asset) => {
+                    resolve(asset)
+                })
+                .catch((e) => {
+                    let err = e.original;
+                    resolve({
+                        code: err.code,
+                        errno: err.errno,
+                        sqlMessage: err.sqlMessage
+                    });
+                })
             })
-            return await parent.create(obj);
         },
         update: async (id, d,user) =>{
             let asset = await parent.find(id);
             let obj = d.fields || d;
-            console.log(obj,asset);
+            if(!asset) return `could not find an asset with id ${id}`;
             if(obj.note == asset.note){
                 return await "no change";
             }else{
-                let ret = await status().find(id);
-                console.log(1111111,ret)
-                ret.changelist.push({why:obj.note,by:user,time:Date.now()});
-                status().update(id,ret);
+                let s = await status().create({why:obj.note,by:user,time:Date.now()});
+                asset.addStatus(s)
             }
-            return await parent.update(id, obj);
+            parent = base.use('asset');
+            obj.mac = obj.mac.toUpperCase();
+            return await parent.update(obj);
         },
-        all : async () => {
-            let ret =  await parent.all();
-            ret = ret.sort((a,b) => {
-                return a.id - b.id;
-            })
-
-            return ret;
+        all : async (options) => {
+            // return await parent.all({association: 'status'});
+            return await parent.all(options);
         },
         find: async (id) => {
             return await parent.find(id);
@@ -94,7 +97,7 @@ module.exports = function(compatible) {
         destroy:async(id) => {
             let asset = await parent.find(id);
             asset.deleted = true;
-	    console.log('del -------->',asset)
+            console.log('del -------->',asset)
             return await parent.update(id,asset);
         },
         search:async(keyword) =>{
@@ -157,6 +160,6 @@ module.exports = function(compatible) {
                 }
             }
         },
-    });
+    };
 }
 

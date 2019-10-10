@@ -1,10 +1,10 @@
 import base  from './model-base'
-let parent = new base({
-    name : "status",
-    fields: ["id", "changelist"]
-})
-
-module.exports = function(compatible) {
+// let parent = new base({
+//     name : "status",
+//     fields: ["id", "changelist"]
+// })
+export default function(compatible) {
+    let parent = base.use('status')
     return {
         create : async (d) => {
             return await parent.create(d);

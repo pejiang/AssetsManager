@@ -27,10 +27,10 @@ export default (
             listen: 8888
         },
         use: 'http',
-        ac_server:'http://192.168.0.227',
+        ac_server:'http://10.0.10.240',
         developer:{
-            key:"tester",
-            secret:"tester"
+            key:"huijia",
+            secret:"huijia"
         },
         DEBUG: true
     }
