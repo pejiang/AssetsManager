@@ -61,7 +61,7 @@ module.exports = function(compatible) {
                     resolve(asset)
                 })
                 .catch((e) => {
-                    let err = e.original;
+                    let err = e.original || {};
                     resolve({
                         code: err.code,
                         errno: err.errno,
@@ -88,8 +88,14 @@ module.exports = function(compatible) {
             // return await parent.all({association: 'status'});
             return await parent.all(options);
         },
+        find_and_count_all : async (options) => {
+            return await parent.find_and_count_all(options);
+        },
         find: async (id) => {
             return await parent.find(id);
+        },
+        count: async () => {
+            return await parent.count();
         },
         find_by:async(key,val) => {
             return await parent.find_by(key,val)
@@ -98,7 +104,7 @@ module.exports = function(compatible) {
             let asset = await parent.find(id);
             asset.deleted = true;
             console.log('del -------->',asset)
-            return await parent.update(id,asset);
+            return await parent.update(asset);
         },
         search:async(keyword) =>{
             let assets = await parent.all()

@@ -10,6 +10,9 @@ module.exports = function(compatible) {
         all : async (options) => {
             return await model().all(options);
         },
+        find_and_count_all: async (options) => {
+            return await model().find_and_count_all(options);
+        },
         find: async (id) => {
             return await model().find(id);
         },
@@ -19,8 +22,8 @@ module.exports = function(compatible) {
         destroy:async(id) => {
             return await model().destroy(id)
         },
-        search:async(keyword) =>{
-            return await model().search(keyword);
+        search:async(options) =>{
+            return await model().find_and_count_all(options);
         }
     }
 }

@@ -21,6 +21,9 @@ export default function(compatible) {
         find_by:async(key,val) => {
             return await parent.find_by(key,val)
         },
+        find_and_count_all : async (options) => {
+            return await parent.find_and_count_all(options);
+        },
         destroy:async(id) => {
             return await parent.destroy(id)
         }

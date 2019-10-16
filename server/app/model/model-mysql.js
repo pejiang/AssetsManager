@@ -55,6 +55,10 @@ var self = {
 
         return await db[self.name].findAll(options)
     },
+    find_and_count_all: async (options) => {
+        console.log('get limit with options:', options)
+        return await db[self.name].findAndCountAll(options);
+    },
     /**
      * 获取所有数据
      *

@@ -11,7 +11,7 @@ const sequelize = new Sequelize(
   config.mysql['password'], {
     host: config.mysql['host'],
     dialect: 'mysql',
-    logging: true,
+    logging: false,
     freezeTableName: false,
     clientMinMessages: "warning; set client_encoding='latin1'", // hack overwrite client encoding, because pg lib do not provide any method
     // operatorsAliases: {

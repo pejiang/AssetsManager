@@ -18,7 +18,8 @@ const table = {
     dept: {type: Sequelize.STRING},
     price: {type: Sequelize.DOUBLE},
     note: {type:Sequelize.STRING},
-    image: {type: Sequelize.STRING}
+    image: {type: Sequelize.STRING},
+    deleted: {type: Sequelize.BOOLEAN}
 };
 
 module.exports = function(sequelize, DataTypes) {

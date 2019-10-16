@@ -33,12 +33,12 @@ export default (compatible) => {
 					// let position = await posctl().find_by('asset_mac', asset['mac'])
 					if(res.name){
 						if(instance.get('pos_hist').length == 0){
-							let pos = await posctl().create({history: res.name});
+							let pos = await posctl().create({history: res.name, time: Date.now()});
 							instance.addPos_hist(pos)							
 						}else{
 							let history = instance.get('pos_hist')[0].get('history')
 							if(!history || history != res.name){
-								let pos = await posctl().create({history: res.name});
+								let pos = await posctl().create({history: res.name, time: Date.now()});
 								instance.addPos_hist(pos)
 							}							
 						}

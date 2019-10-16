@@ -10,6 +10,9 @@ module.exports = function(compatible) {
         all : async (options) => {
             return await model().all(options);
         },
+        find_and_count_all: async (options) => {
+            return await model().find_and_count_all(options);
+        },
         find: async (id) => {
             return await model().find(id);
         },

@@ -5,6 +5,8 @@ import position from '../controller/position'
 import status from '../controller/status'
 import service from '../service/serviceImpl'
 import {log} from '../util'
+import { Sequelize } from "sequelize";// 引入orm
+const Op = Sequelize.Op;
 
 const router = new Router({
     prefix:'/assets'
@@ -19,19 +21,77 @@ router
   //   if (!ctx.assets) return ctx.status = 404;
   //   return next();
   // })
-  .get('/',  async (ctx,next) => {
-    ctx.body = await assets().all();
+  .get('/', async(ctx, next) => {
+      let all = await assets().all({
+        where: {
+          deleted: {
+            [Op.not]: true
+          }
+        },
+        order: [['id', 'DESC']]
+      });
+      ctx.body = {
+        total: all.length,
+        data: all
+      }
+  })
+  .get('/:offset/:limit',  async (ctx,next) => {
+    let offset = ctx.params.offset
+    let limit = ctx.params.limit
+    let res =  await assets().find_and_count_all({
+       where: {
+         deleted: {
+           [Op.not]: true
+         }
+       },
+       order: [['id', 'DESC']],
+       offset: parseInt(offset), limit: parseInt(limit)
+     });
+
+    ctx.body = {
+      total: res.count,
+      data: res.rows
+    }
   })
   .get('/device', async (ctx,next) => {
     var a = ['E1:10:87:7F:16:68'];
     ctx.body = JSON.stringify(a);
   })
-  .get('/search/:keyword',async (ctx,next) => {
+  .get('/search/:keyword/:offset/:limit',async (ctx,next) => {
     let keyword = ctx.params.keyword;
+    let offset = ctx.params.offset;
+    let limit = ctx.params.limit;
     if(!keyword){
         return ctx.body = 'keyword is required!';
     }
-    ctx.body = await assets().search(keyword);
+    let like = {
+      [Op.like]: '%' + keyword + '%'
+    }
+    let res = await assets().search({
+      order: [['id', 'DESC']],
+      where: {
+         deleted: {
+           [Op.not]: true
+         },
+         [Op.or]: [
+          {id: like},
+          {name: like},
+          {mac: like},
+          {position: like},
+          {owner: like},
+          {count: like},
+          {type: like},
+          {dept: like},
+          {price: like},
+          {note: like},
+         ] 
+      }
+    });
+
+    ctx.body = {
+      total: res.count,
+      data: res.rows
+    }
   })
   .post('/position',async (ctx,next) => {
     let positionData = ctx.request.body;
@@ -107,13 +167,24 @@ positionRouter.get('/history/:offset/:limit',async (ctx,next) => {
     log.d('Get position history ID:',id)
     let asset = await assets().find(id);
     console.log(asset)
-    ctx.body = await position().all({where: {asset_mac: asset.mac}, offset: parseInt(parmOffset), limit: parseInt(parmLimit)});
+    let res = await position().find_and_count_all({where: {asset_mac: asset.mac}, offset: parseInt(parmOffset), limit: parseInt(parmLimit), order: [['time', 'DESC']]});
+    ctx.body = {
+      total: res.count,
+      data: res.rows
+    }
 })
 
 
-statusRouter.get('/',async (ctx,next) => {
+statusRouter.get('/:offset/:limit',async (ctx,next) => {
     let id = ctx.params.id
-    ctx.body = await status().find(id);
+    let parmOffset = ctx.params.offset
+    let parmLimit = ctx.params.limit
+    log.d('Get position history ID:',id)
+    let res = await status().find_and_count_all({where: {asset_id: id}, offset: parseInt(parmOffset), limit: parseInt(parmLimit), order: [['time', 'DESC']]});
+    ctx.body = {
+      total: res.count,
+      data: res.rows
+    }
 })
 
 imageRouter.post('/',async (ctx,next) => {
