@@ -5,6 +5,7 @@ import position from '../controller/position'
 import status from '../controller/status'
 import service from '../service/serviceImpl'
 import {log} from '../util'
+import moment from 'moment'
 import { Sequelize } from "sequelize";// 引入orm
 const Op = Sequelize.Op;
 
@@ -16,11 +17,30 @@ const router = new Router({
 // router.use('/:fid/fields', fields.routes(), fields.allowedMethods());
 
 router
-  // .param('id', async (id, ctx, next) => {
-  //   ctx.assets = await model().findby('name');
-  //   if (!ctx.assets) return ctx.status = 404;
-  //   return next();
-  // })
+  .get('/export/:ids/:type', async(ctx, next) => {
+    let ids = ctx.params.ids;
+    let type = ctx.params.type;
+    let or = [];
+    if(ids != 'all'){
+      for(let id of ids){
+        or.push({'id': id})
+      }
+    }
+    let options = {
+       where: {
+         deleted: {
+           [Op.not]: true
+         }
+       },
+      // attributes: ['id']
+    }
+    if(or.length > 0)options[Op.or] = or;
+    var res = await assets().export(ids, type, options);
+
+    var date = moment().format('YYYY-MM-DD');
+    ctx.set('Content-disposition','attachment;filename='+'assets@'+ date + '.xlsx'); 
+    ctx.body = res;
+  })
   .get('/', async(ctx, next) => {
       let all = await assets().all({
         where: {
@@ -92,6 +112,10 @@ router
       total: res.count,
       data: res.rows
     }
+  })
+  .post('/import', async(ctx, next) => {
+    let user = getcookie(ctx,'name') || 'admin';
+    ctx.body = await assets().import(ctx.request.body, user);
   })
   .post('/position',async (ctx,next) => {
     let positionData = ctx.request.body;

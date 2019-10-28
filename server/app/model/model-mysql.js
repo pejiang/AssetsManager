@@ -79,7 +79,7 @@ var self = {
             model: table, // model映射的表
             type: db.sequelize.QueryTypes.QUERY // 操作类型
         };
-        return await exec(`select * FROM ${self.name}s where ${key} = ?`, option);
+        return await exec(`select * FROM ${self.name} where ${key} = ?`, option);
     },
     update: async (data) => {
         return await db[self.name].upsert(data);

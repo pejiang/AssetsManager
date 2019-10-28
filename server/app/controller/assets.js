@@ -19,6 +19,22 @@ module.exports = function(compatible) {
         find_by:async(key,val) => {
             return await model().find_by(key,val)
         },
+        import:async(body, user) => {
+            var ret = await model().upload(body, user);
+            if (!ret) {
+                return {code: 1, msg: 'File Error'};
+            }
+            return ret;
+        },
+        export:async(ids, type, options) => {
+            let assets;
+            if(ids === 'all') {
+                assets = await model().all(options);
+            }
+
+            if(!assets) return {err: 'no asset found'};
+            return await model().export(assets, type)
+        },
         destroy:async(id) => {
             return await model().destroy(id)
         },

@@ -13,7 +13,7 @@ export default (
             'database': 'AssetsManager',
             'username': 'root',
             'password': '19771010',
-            'host':'localhost'
+            'host':'127.0.0.1'
         },
         db: 'mysql',
         https: {
