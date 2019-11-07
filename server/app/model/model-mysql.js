@@ -27,6 +27,9 @@ var self = {
         }
 
     },
+    bulk_create: async(data) => {
+        return await db[self.name].bulkCreate(data);
+    },
     exist: async (id) => {
 
     },
@@ -52,7 +55,13 @@ var self = {
         //         order: options.sort || [['id', 'ASC']]
         //     });
         // }
-
+        if(options.association){
+            options.include = [{
+                model: db[options.association],
+                as: options.association
+            }]
+            delete options.association;
+        }
         return await db[self.name].findAll(options)
     },
     find_and_count_all: async (options) => {
@@ -69,8 +78,8 @@ var self = {
     find: async (pk) => {
         return await db[self.name].findByPk(pk);
     },
-    count: async () => {
-        return await db[self.name].count();
+    count: async (options) => {
+        return await db[self.name].count(options);
     },
     find_by: async (key, value) => {
         let table = db[self.name];

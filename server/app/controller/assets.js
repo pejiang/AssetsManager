@@ -5,13 +5,16 @@ module.exports = function(compatible) {
             return await model().create(d,user);
         },
         update: async (id, d,user) =>{
-            return await model().update(id, d,user);
+            return await model().update(id, d, user);
         },
         all : async (options) => {
             return await model().all(options);
         },
         find_and_count_all: async (options) => {
             return await model().find_and_count_all(options);
+        },
+        count: async (options) => {
+            return await model().count(options);
         },
         find: async (id) => {
             return await model().find(id);

@@ -55,6 +55,34 @@ router
         data: all
       }
   })
+  .get('/:filed/:order/:offset/:limit', async(ctx, next) => {
+    let filed = ctx.params.filed;
+    let order = ctx.params.order;
+    order = order == 'descending' ? 'desc' : 'asc';
+    let offset = ctx.params.offset
+    let limit = ctx.params.limit
+    let all = await assets().all({
+      where: {
+        deleted: {
+          [Op.not]: true
+        }
+      },
+      // order: [[filed, order]],
+      order: [[Sequelize.literal(`convert(${filed} using gbk)`), order]],
+      offset: parseInt(offset), limit: parseInt(limit)
+    });
+    let totalCount = await assets().count({
+       where: {
+         deleted: {
+           [Op.not]: true
+         }
+       },
+    });
+    ctx.body = {
+      total: totalCount,
+      data: all
+    }
+  })
   .get('/:offset/:limit',  async (ctx,next) => {
     let offset = ctx.params.offset
     let limit = ctx.params.limit
@@ -67,9 +95,15 @@ router
        order: [['id', 'DESC']],
        offset: parseInt(offset), limit: parseInt(limit)
      });
-
+    let totalCount = await assets().count({
+       where: {
+         deleted: {
+           [Op.not]: true
+         }
+       },
+    });
     ctx.body = {
-      total: res.count,
+      total: totalCount,
       data: res.rows
     }
   })
@@ -77,8 +111,11 @@ router
     var a = ['E1:10:87:7F:16:68'];
     ctx.body = JSON.stringify(a);
   })
-  .get('/search/:keyword/:offset/:limit',async (ctx,next) => {
+  .get('/search/:keyword/:filed/:order/:offset/:limit',async (ctx,next) => {
     let keyword = ctx.params.keyword;
+    let filed = ctx.params.filed;
+    let order = ctx.params.order;
+    order = order == 'descending' ? 'desc' : 'asc';
     let offset = ctx.params.offset;
     let limit = ctx.params.limit;
     if(!keyword){
@@ -88,7 +125,8 @@ router
       [Op.like]: '%' + keyword + '%'
     }
     let res = await assets().search({
-      order: [['id', 'DESC']],
+      // order: [['id', 'DESC']],
+      order: [[Sequelize.literal(`convert(${filed} using gbk)`), order]],
       where: {
          deleted: {
            [Op.not]: true
@@ -129,7 +167,8 @@ router
   })
   .post('/collect',async (ctx,next) => {
     let data = ctx.request.body;
-    console.log(111111111111,data)
+    await service().collect(data);
+    // console.log(111111111111,data)
     ctx.body = {}
   })
   .post('/sleep',async (ctx,next) => {
@@ -142,7 +181,7 @@ router
     let user = getcookie(ctx,'name') || 'admin';
     ctx.body = await assets().create(body,user)
   })
-  .put('/:id', async (ctx, next) => {
+  .post('/:id', async (ctx, next) => {
     let id = ctx.params.id
     let body = ctx.request.body;
     let user = getcookie(ctx,'name') || 'admin';
@@ -177,7 +216,7 @@ fieldsRouter.put('/', async (ctx, next) => {
     ctx.body = await fields().update(ctx.request.body)
 });
 
-positionRouter.get('/',async (ctx,next) => {
+positionRouter.get('/all/:offset/:limit',async (ctx,next) => {
     let id = ctx.params.id
     log.d('Get position ID:',id)
     let ret = await assets().find(id);
@@ -190,6 +229,13 @@ positionRouter.get('/history/:offset/:limit',async (ctx,next) => {
     let parmLimit = ctx.params.limit
     log.d('Get position history ID:',id)
     let asset = await assets().find(id);
+    if(!asset){
+      ctx.body = {
+        code: 1,
+        message: 'asset not found'
+      }
+      return
+    }
     console.log(asset)
     let res = await position().find_and_count_all({where: {asset_mac: asset.mac}, offset: parseInt(parmOffset), limit: parseInt(parmLimit), order: [['time', 'DESC']]});
     ctx.body = {
@@ -199,7 +245,7 @@ positionRouter.get('/history/:offset/:limit',async (ctx,next) => {
 })
 
 
-statusRouter.get('/:offset/:limit',async (ctx,next) => {
+statusRouter.get('/all/:offset/:limit',async (ctx,next) => {
     let id = ctx.params.id
     let parmOffset = ctx.params.offset
     let parmLimit = ctx.params.limit

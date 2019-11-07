@@ -24,10 +24,12 @@
     "koa": "^2.5.1",
     "koa-body": "^2.5.0",
     "koa-bodyparser": "^4.2.1",
+    "koa-multer": "^1.0.2",
     "koa-router": "^7.4.0",
     "koa-static": "^4.0.3",
     "lodash": "^4.17.15",
     "mkdirp": "^0.5.1",
+    "multer": "^1.4.2",
     "mysql2": "^1.7.0",
     "nodemon": "^1.17.5",
     "oauth20-provider": "^0.6.0",
@@ -35,6 +37,7 @@
     "request": "^2.87.0",
     "request-promise": "^4.2.2",
     "sequelize": "^5.18.4",
+    "shelljs": "^0.8.3",
     "xlsx": "^0.15.1"
   }
 }

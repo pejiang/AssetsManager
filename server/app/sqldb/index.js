@@ -41,7 +41,9 @@ db.sequelize = sequelize;
 db.asset = db.sequelize.import('../model/asset_table'); // 引入model 数据user表
 db.status = db.sequelize.import('../model/status_table');
 db.position = db.sequelize.import('../model/position_table');
+db.image = db.sequelize.import('../model/image_table');
 db.asset.hasMany(db.status, {as: 'status', foreignKey: 'asset_id', onDelete: 'cascade'}); // underscore 也可以生成asset_id
 db.asset.hasMany(db.position, {as: 'pos_hist', foreignKey: 'asset_mac', onDelete: 'cascade', onUpdate: 'NO ACTION', sourceKey: 'mac'});
-db.sequelize.sync({alter:true});
+db.asset.hasMany(db.image, {as: 'image', foreignKey: 'asset_id', onDelete: 'cascade', onUpdate: 'NO ACTION'});
+db.sequelize.sync({alter:false});
 export {db};

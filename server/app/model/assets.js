@@ -4,8 +4,9 @@ import {log} from '../util'
 import position from '../controller/position'
 import fields_cl from '../controller/fields'
 import status from '../controller/status'
-
+import imagectl from '../controller/image'
 import base  from './model-base'
+import shell from 'shelljs'
 // let parent = new base({
 //     name : "assets",
 //     fields: ["name", "mac", "stats", "position", "battery"]
@@ -19,13 +20,41 @@ module.exports = function(compatible) {
             let obj = d.fields || d;
             obj.position = await position().find(obj.mac);
             // obj.deleted = false;
-            obj.id = Date.now();
+            obj.id = obj.id || Date.now();
+
+            parent = base.use('asset');
+            obj.status = [{
+                why:"资产入库",
+                by:user,
+                time:Date.now(),
+            }]
+            obj.mac = obj.mac.toUpperCase();
+            return new Promise((resolve, reject) => {
+                parent.create(obj, 'status')
+                .then((asset) => {
+                    resolve(asset)
+                })
+                .catch((e) => {
+                    let err = e.original || {};
+                    resolve({
+                        code: 1,
+                        errno: err.errno,
+                        message: err.sqlMessage
+                    });
+                })
+            })
+        },
+        update: async (id, d, user) =>{
+            let asset = await parent.find(id);
+            let obj = d.fields || d;
+            if(!asset) return {code: 1, message: `could not find an asset with id ${id}`}
+
             let file_dir = require('path').normalize(koa_app.uploads_path + 'image/')
-            // log.d('upload path :',file_dir,d.files.file);
             if(!fs.existsSync(file_dir)){
-                fs.mkdirSync(file_dir);
+                shell.mkdir(file_dir);
             }
             if (d.files && d.files.file) {
+                // console.log(1111111111, d.files)
                 var file = d.files.file,a,
                     filename = file.name,
                     new_path = require('path').normalize(file_dir + filename);
@@ -45,41 +74,26 @@ module.exports = function(compatible) {
                     console.log('rename file ERROR: ' + res);
                     return await [];
                 } else {
-                    obj.image = new_path.substr(new_path.indexOf('public'),new_path.length);
-                }       
+                    let image = {
+                        uid: Date.now(),
+                        url: new_path.substr(new_path.indexOf('public'), new_path.length)
+                    }
+                    let img = await imagectl().create(image);
+                    asset.addImage(img)
+                } 
             }
 
-            parent = base.use('asset');
-            obj.status = [{
-                why:"资产入库",
-                by:user,
-                time:Date.now(),
-            }]
-            obj.mac = obj.mac.toUpperCase();
-            return new Promise((resolve, reject) => {
-                parent.create(obj, 'status')
-                .then((asset) => {
-                    resolve(asset)
-                })
-                .catch((e) => {
-                    let err = e.original || {};
-                    resolve({
-                        code: err.code,
-                        errno: err.errno,
-                        sqlMessage: err.sqlMessage
-                    });
-                })
-            })
-        },
-        update: async (id, d,user) =>{
-            let asset = await parent.find(id);
-            let obj = d.fields || d;
-            if(!asset) return `could not find an asset with id ${id}`;
-            if(obj.note == asset.note){
-                return await "no change";
+            if(obj.note == asset.note && obj.method != 'add' && user != 'system'){
+                return await {
+                    code: 1,
+                    errno: 1,
+                    message: '请填写修改原因'
+                }
             }else{
-                let s = await status().create({why:obj.note,by:user,time:Date.now()});
-                asset.addStatus(s)
+                if(user != 'system' && obj.method != 'add'){
+                    let s = await status().create({why:obj.note,by:user,time:Date.now()});
+                    asset.addStatus(s)                    
+                }
             }
             parent = base.use('asset');
             obj.mac = obj.mac.toUpperCase();
@@ -87,6 +101,8 @@ module.exports = function(compatible) {
         },
         all : async (options) => {
             // return await parent.all({association: 'status'});
+            if(!options.include)
+                options.association = 'image'
             return await parent.all(options);
         },
         find_and_count_all : async (options) => {
@@ -95,8 +111,8 @@ module.exports = function(compatible) {
         find: async (id) => {
             return await parent.find(id);
         },
-        count: async () => {
-            return await parent.count();
+        count: async (options) => {
+            return await parent.count(options);
         },
         find_by:async(key,val) => {
             return await parent.find_by(key,val)
@@ -157,13 +173,14 @@ module.exports = function(compatible) {
             let file = d.files.file,a,
                 filename = file.name;
 
-            let targetDir = filename.endsWith('xlsx') ? 'conf/' : 'image/';
+            let targetDir = filename.endsWith('xlsx') ? 'conf/' : 'images/';
             let file_dir = require('path').normalize(koa_app.uploads_path + targetDir)
             let new_path = require('path').normalize(file_dir + filename);
 
             console.log('upload path :',file_dir,d.files.file);
             if(!fs.existsSync(file_dir)){
-                fs.mkdirSync(file_dir);
+                shell.mkdir('-p', file_dir);
+                // fs.mkdirSync(file_dir);
             }
             function rename (a, b) {
                 return new Promise((resolve,reject) => {
@@ -174,44 +191,50 @@ module.exports = function(compatible) {
                     });
                 })
             }
+
             let res = await rename(file.path, new_path);
             if (res) {
                 console.log('rename file ERROR: ' + res);
                 return await [];
             } else {
                 let file_path = new_path;
-                if(targetDir != 'image/'){
-                    try {
-                        var file_content = fs.readFileSync(file_path);
-                        var workbook = XLSX.read(file_content, {type:'buffer'});
-                        // 返回 ['sheet1', 'sheet2']
-                        const sheetNames = workbook.SheetNames;
-                        // 根据表名获取对应某张表
-                        const worksheet = workbook.Sheets[sheetNames[0]];
-                        let assetsJson = XLSX.utils.sheet_to_json(worksheet)
-                        for(let asset of assetsJson){
-                            asset.mac = asset.mac.toUpperCase();
-                            asset.id = Date.now();
-                            parent = base.use('asset');
-                            let q = await parent.find_by('mac', asset.mac);
-                            if(!q.length > 0){
-                                asset.status = [{
-                                    why:"资产入库",
-                                    by:user,
-                                    time:Date.now(),
-                                }]
-                                await parent.create(asset, 'status')
+                switch(targetDir){
+                    case 'conf/':
+                        try {
+                            var file_content = fs.readFileSync(file_path);
+                            var workbook = XLSX.read(file_content, {type:'buffer'});
+                            // 返回 ['sheet1', 'sheet2']
+                            const sheetNames = workbook.SheetNames;
+                            // 根据表名获取对应某张表
+                            const worksheet = workbook.Sheets[sheetNames[0]];
+                            let assetsJson = XLSX.utils.sheet_to_json(worksheet)
+                            for(let asset of assetsJson){
+                                asset.mac = asset.mac.toUpperCase();
+                                asset.id = Date.now();
+                                parent = base.use('asset');
+                                let q = await parent.find_by('mac', asset.mac);
+                                if(!q.length > 0){
+                                    asset.status = [{
+                                        why:"资产入库",
+                                        by:user,
+                                        time:Date.now(),
+                                    }]
+                                    await parent.create(asset, 'status')
+                                }
                             }
-                        }
-                    } catch (e) {
-                        console.log('some ERROR occured', e);
-                        let err = e.original || {};
-                        return {
-                            code: err.code,
-                            errno: err.errno,
-                            sqlMessage: err.sqlMessage
-                        };
-                    }                   
+                        } catch (e) {
+                            console.log('some ERROR occured', e);
+                            let err = e.original || {};
+                            return {
+                                code: 1,
+                                errno: err.errno,
+                                message: err.sqlMessage
+                            };
+                        } 
+                        break;
+                    case 'images/':     
+                        break;
+
                 }
 
                 let f = {};
