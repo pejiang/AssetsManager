@@ -18,7 +18,7 @@ module.exports = function(compatible) {
         create : async (d,user) => {
             parent.fields = fields_cl().all();
             let obj = d.fields || d;
-            obj.position = await position().find(obj.mac);
+            // obj.position = await position().find(obj.mac);
             // obj.deleted = false;
             obj.id = obj.id || Date.now();
 
@@ -87,7 +87,7 @@ module.exports = function(compatible) {
                 return await {
                     code: 1,
                     errno: 1,
-                    message: '请填写修改原因'
+                    message: '请在重置备注里填写重置的原因'
                 }
             }else{
                 if(user != 'system' && obj.method != 'add'){
@@ -180,7 +180,6 @@ module.exports = function(compatible) {
             console.log('upload path :',file_dir,d.files.file);
             if(!fs.existsSync(file_dir)){
                 shell.mkdir('-p', file_dir);
-                // fs.mkdirSync(file_dir);
             }
             function rename (a, b) {
                 return new Promise((resolve,reject) => {
@@ -221,6 +220,12 @@ module.exports = function(compatible) {
                                     }]
                                     await parent.create(asset, 'status')
                                 }
+                            }
+
+                            return {
+                                code: 0,
+                                errno: 0,
+                                message: 'import successful'
                             }
                         } catch (e) {
                             console.log('some ERROR occured', e);

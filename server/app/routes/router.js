@@ -132,7 +132,7 @@ router
            [Op.not]: true
          },
          [Op.or]: [
-          {id: like},
+          // {id: like},
           {name: like},
           {mac: like},
           {position: like},
